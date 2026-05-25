@@ -2,617 +2,958 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AI Gym Coach Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>FitCoach AI — Professional Gym Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --g:#00ff88;--r:#ff2040;--y:#ffcc00;--b:#00aaff;--o:#ff6600;
-  --bg:#050508;--panel:#0a0a12;--card:#0f0f1a;--border:#1a1a28;
-  --text:#e0e4ff;--muted:#404060;
+  --g:#00e676;--r:#ff1744;--y:#ffd600;--b:#00b0ff;--p:#d500f9;--o:#ff6d00;
+  --bg:#060608;--s1:#0d0d15;--s2:#111120;--s3:#16162a;--border:#1e1e35;
+  --text:#f0f0ff;--muted:#50507a;--card:#13131f;
 }
-html,body{height:100%;overflow:hidden;background:var(--bg)}
-body{color:var(--text);font-family:'Oswald',sans-serif;display:flex;flex-direction:column}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent}
 
-/* ── HEADER ── */
-header{
+/* ══════════════════════════════════════
+   SCREEN MANAGEMENT
+══════════════════════════════════════ */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+
+/* ══════════════════════════════════════
+   SPLASH / HOME SCREEN
+══════════════════════════════════════ */
+#homeScreen{
+  background:radial-gradient(ellipse at 30% 20%,#0d1f3c 0%,#060608 60%);
+  align-items:center;justify-content:center;gap:0;
+}
+.home-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.home-bg::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,#00e67608,transparent 70%);top:-200px;left:-200px}
+.home-bg::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,#d500f908,transparent 70%);bottom:-100px;right:-100px}
+.home-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:40px 24px;width:100%;max-width:480px}
+.app-logo{display:flex;flex-direction:column;align-items:center;margin-bottom:40px}
+.logo-icon{width:90px;height:90px;border-radius:24px;background:linear-gradient(135deg,#00e676,#00b0ff);display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin-bottom:16px;box-shadow:0 0 40px #00e67644,0 20px 40px #00000066}
+.logo-title{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:4px;color:var(--text);line-height:1}
+.logo-sub{font-size:.8rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:4px}
+.home-tagline{text-align:center;margin-bottom:40px}
+.home-tagline h2{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:var(--text);margin-bottom:8px}
+.home-tagline p{font-size:.85rem;color:var(--muted);line-height:1.6;max-width:300px}
+.home-features{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-bottom:36px}
+.feat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.feat-icon{font-size:1.4rem}
+.feat-title{font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;color:var(--text)}
+.feat-desc{font-size:.68rem;color:var(--muted);line-height:1.4}
+.btn-start-app{
+  width:100%;padding:18px;border:none;border-radius:16px;
+  background:linear-gradient(135deg,#00e676,#00b0ff);
+  color:#000;font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;
+  letter-spacing:2px;cursor:pointer;
+  box-shadow:0 0 30px #00e67644,0 10px 30px #00000044;
+  transition:all .2s;
+}
+.btn-start-app:active{transform:scale(.97)}
+
+/* ══════════════════════════════════════
+   WORKOUT SCREEN
+══════════════════════════════════════ */
+#workoutScreen{background:var(--bg)}
+
+/* TOP BAR */
+.topbar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:8px 16px;background:var(--panel);border-bottom:2px solid var(--r);
-  flex-shrink:0;gap:8px;
+  padding:10px 14px;background:var(--s1);border-bottom:1px solid var(--border);
+  flex-shrink:0;z-index:10;
 }
-.logo{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:3px;color:var(--r);text-shadow:0 0 20px #ff204066;white-space:nowrap}
-.logo span{color:var(--text)}
-.hdr-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.live-pill{display:flex;align-items:center;gap:6px;border:1.5px solid var(--border);border-radius:999px;padding:4px 10px;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);transition:all .3s;white-space:nowrap}
-.live-pill.on{border-color:var(--g);color:var(--g)}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);transition:all .3s;flex-shrink:0}
-.live-pill.on .live-dot{background:var(--g);box-shadow:0 0 8px var(--g);animation:blink 1.4s infinite}
+.tb-left{display:flex;align-items:center;gap:10px}
+.btn-back{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--muted);cursor:pointer;font-size:.8rem;font-family:'Rajdhani',sans-serif;font-weight:600}
+.tb-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--g);text-shadow:0 0 16px #00e67655}
+.tb-right{display:flex;align-items:center;gap:8px}
+.live-badge{display:flex;align-items:center;gap:5px;border:1.5px solid var(--border);border-radius:999px;padding:4px 10px;font-size:.62rem;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;color:var(--muted);transition:all .3s}
+.live-badge.on{border-color:var(--g);color:var(--g)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);transition:all .3s}
+.live-badge.on .live-dot{background:var(--g);box-shadow:0 0 6px var(--g);animation:blink 1.4s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.btn-cam{border:none;border-radius:8px;padding:8px 16px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1.5px;cursor:pointer;transition:all .2s;background:var(--g);color:#000;box-shadow:0 0 14px #00ff8844;white-space:nowrap}
-.btn-cam.stop{background:var(--r);color:#fff;box-shadow:0 0 14px #ff204044}
+.btn-cam{border:none;border-radius:8px;padding:7px 14px;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:all .2s;background:var(--g);color:#000}
+.btn-cam.stop{background:var(--r);color:#fff}
 
-/* ── LAYOUT ── */
-main{display:flex;flex:1;overflow:hidden}
+/* MAIN AREA */
+.workout-body{display:flex;flex:1;overflow:hidden;position:relative}
 
-/* ── VIDEO ── */
-.video-col{flex:1;position:relative;background:#000;overflow:hidden}
+/* VIDEO */
+.vid-wrap{flex:1;position:relative;background:#000;overflow:hidden}
 video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 video{transform:scaleX(-1)}
 canvas{transform:scaleX(-1)}
 
-/* overlays */
-.ov{position:absolute;pointer-events:none;font-family:'Bebas Neue',sans-serif}
-.ov-rep{top:12px;left:12px;font-size:4rem;line-height:1;color:var(--g);text-shadow:0 0 30px var(--g)}
-.ov-rep-lbl{top:72px;left:14px;font-size:.7rem;letter-spacing:3px;color:#ffffff88;font-family:'JetBrains Mono',monospace}
-.ov-angle{bottom:80px;right:12px;font-size:1.8rem;color:var(--y);text-shadow:0 0 16px var(--y)}
-.ov-stage{top:12px;right:12px;font-size:.9rem;letter-spacing:2px;padding:5px 12px;border-radius:7px;border:2px solid transparent;transition:all .3s}
-.ov-stage.down{border-color:var(--r);color:var(--r);background:#ff204018}
-.ov-stage.up{border-color:var(--g);color:var(--g);background:#00ff8818}
+/* VIDEO OVERLAYS */
+.ov{position:absolute;pointer-events:none}
+.ov-rep{top:12px;left:12px;font-family:'Bebas Neue',sans-serif;font-size:5rem;line-height:1;color:var(--g);text-shadow:0 0 30px #00e67677;transition:transform .1s}
+.ov-rep.pop{transform:scale(1.25)}
+.ov-reps-lbl{top:82px;left:16px;font-family:'Rajdhani',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:3px;color:#ffffff66}
+.ov-target-progress{top:12px;left:80px;font-family:'Rajdhani',sans-serif;font-size:.7rem;color:#ffffff55;letter-spacing:1px}
+.ov-stage{top:12px;right:12px;font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:2px;padding:5px 12px;border-radius:8px;border:2px solid transparent;transition:all .3s}
+.ov-stage.up{border-color:var(--g);color:var(--g);background:#00e67615}
+.ov-stage.down{border-color:var(--r);color:var(--r);background:#ff174415}
+.ov-angle{bottom:90px;right:12px;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--y);text-shadow:0 0 14px #ffd60077}
+.ov-ex-name{bottom:90px;left:12px;font-family:'Rajdhani',sans-serif;font-size:.8rem;font-weight:700;color:var(--b);letter-spacing:1px;background:rgba(0,0,0,.6);padding:4px 10px;border-radius:6px;border:1px solid #00b0ff44}
 
-/* breathing overlay */
-.breath-overlay{
+/* BREATH TOAST */
+.breath-toast{
   position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,.85);border-radius:12px;padding:8px 18px;
-  font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;
-  border:2px solid var(--b);color:var(--b);text-align:center;
-  white-space:nowrap;transition:all .4s;opacity:0;pointer-events:none;
-  text-shadow:0 0 10px var(--b);
+  font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;letter-spacing:2px;
+  padding:8px 20px;border-radius:10px;border:2px solid;
+  background:rgba(0,0,0,.85);white-space:nowrap;
+  transition:opacity .4s;opacity:0;pointer-events:none;
 }
-.breath-overlay.show{opacity:1}
-.breath-overlay.exhale{border-color:var(--r);color:var(--r);text-shadow:0 0 10px var(--r)}
-.breath-overlay.hold{border-color:var(--y);color:var(--y);text-shadow:0 0 10px var(--y)}
+.breath-toast.show{opacity:1}
+.breath-toast.inhale{border-color:var(--b);color:var(--b);text-shadow:0 0 10px var(--b)}
+.breath-toast.exhale{border-color:var(--r);color:var(--r);text-shadow:0 0 10px var(--r)}
+.breath-toast.hold{border-color:var(--y);color:var(--y);text-shadow:0 0 10px var(--y)}
 
-/* form alert */
-.form-alert{
+/* FORM ALERT */
+.form-toast{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  background:rgba(0,0,0,.9);border-radius:12px;padding:10px 20px;
-  font-family:'Oswald',sans-serif;font-size:.9rem;font-weight:600;
-  color:var(--y);border:2px solid var(--y);text-align:center;
-  transition:opacity .4s;opacity:0;pointer-events:none;max-width:85%;
+  font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:700;
+  padding:10px 18px;border-radius:10px;border:2px solid;
+  background:rgba(0,0,0,.9);text-align:center;max-width:85%;
+  transition:opacity .4s;opacity:0;pointer-events:none;
 }
-.form-alert.show{opacity:1}
-.form-alert.good{color:var(--g);border-color:var(--g)}
-.form-alert.bad{color:var(--r);border-color:var(--r)}
+.form-toast.show{opacity:1}
+.form-toast.good{border-color:var(--g);color:var(--g)}
+.form-toast.warn{border-color:var(--y);color:var(--y)}
+.form-toast.bad{border-color:var(--r);color:var(--r)}
 
-/* no cam */
-.no-cam{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:radial-gradient(ellipse at center,#0a0a18,#050508)}
-.no-cam svg{opacity:.15}
-.no-cam p{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--muted);text-align:center;max-width:220px;line-height:1.7}
+/* MIC STATUS */
+.mic-status{position:absolute;bottom:14px;right:12px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.7);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .3s}
+.mic-status.listening{border-color:var(--r);box-shadow:0 0 12px var(--r);animation:micPulse 1s infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 12px var(--r)}50%{box-shadow:0 0 24px var(--r)}}
 
-/* ── RIGHT PANEL ── */
-.right-panel{width:260px;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
-.right-panel::-webkit-scrollbar{width:3px}
-.right-panel::-webkit-scrollbar-thumb{background:var(--border)}
-.rp-sec{padding:14px;border-bottom:1px solid var(--border)}
-.rp-lbl{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+/* NO CAM */
+.no-cam{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(ellipse at center,#0d0d20,#060608)}
+.no-cam-icon{font-size:3rem;opacity:.3}
+.no-cam p{font-family:'Rajdhani',sans-serif;font-size:.9rem;color:var(--muted);text-align:center;max-width:220px;line-height:1.6}
 
-/* rep display */
-.rep-big{font-family:'Bebas Neue',sans-serif;font-size:4.5rem;line-height:1;color:var(--g);text-shadow:0 0 24px #00ff8855;text-align:center;transition:transform .1s}
-.rep-big.pop{transform:scale(1.2)}
-.rep-target{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);text-align:center;margin-top:2px}
+/* RIGHT PANEL */
+.right-panel{width:250px;background:var(--s1);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.rp-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.rp-tab{flex:1;padding:10px 4px;font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:1px;text-align:center;color:var(--muted);cursor:pointer;border:none;background:transparent;transition:all .2s;border-bottom:2px solid transparent}
+.rp-tab.active{color:var(--g);border-bottom-color:var(--g)}
+.rp-content{flex:1;overflow-y:auto;padding:12px}
+.rp-content::-webkit-scrollbar{width:3px}
+.rp-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.rp-panel{display:none;flex-direction:column;gap:10px}
+.rp-panel.active{display:flex}
+.sec-label{font-family:'Rajdhani',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
 
-/* exercise grid */
-.ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.ex-btn{
-  border:1.5px solid var(--border);background:var(--card);color:var(--muted);
-  border-radius:8px;padding:8px 4px;font-family:'Oswald',sans-serif;font-size:.75rem;
-  font-weight:600;cursor:pointer;transition:all .2s;text-align:center;line-height:1.3;
-}
-.ex-btn:hover{color:var(--text);border-color:#fff2}
-.ex-btn.active{border-color:var(--r);color:var(--r);background:#ff204012;box-shadow:0 0 10px #ff204022}
-.ex-btn .ex-icon{font-size:1.2rem;display:block;margin-bottom:2px}
+/* REP DISPLAY */
+.rep-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.rep-num{font-family:'Bebas Neue',sans-serif;font-size:4rem;line-height:1;color:var(--g);text-shadow:0 0 20px #00e67655}
+.rep-of{font-family:'Rajdhani',sans-serif;font-size:.7rem;color:var(--muted);letter-spacing:1px;margin-top:2px}
+.rep-progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:8px}
+.rep-progress-fill{height:100%;background:linear-gradient(90deg,var(--g),var(--b));border-radius:2px;transition:width .4s}
 
-/* target input */
-.target-row{display:flex;gap:6px;align-items:center}
-.target-input{
-  flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:7px;
-  padding:7px 10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.8rem;
-  outline:none;
-}
-.target-input:focus{border-color:var(--g)}
-.target-lbl{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted)}
-
-/* form score */
+/* SCORE */
+.score-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
 .score-row{display:flex;align-items:center;gap:10px}
-.score-num{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;color:var(--g);line-height:1;transition:color .3s}
-.score-bar-wrap{flex:1}
-.score-bar-track{height:8px;background:#1a1a28;border-radius:4px;overflow:hidden;margin-bottom:4px}
-.score-bar-fill{height:100%;border-radius:4px;transition:width .4s,background .4s}
-.score-grade{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:1px}
+.score-big{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;line-height:1;transition:color .3s}
+.score-right{flex:1}
+.score-bar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.score-bar-fill{height:100%;border-radius:3px;transition:width .4s,background .4s}
+.score-grade{font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:1px}
 
-/* stats */
+/* STATS */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.stat-box{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px;text-align:center}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
 .stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--g)}
-.stat-key{font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:1px}
+.stat-key{font-family:'Rajdhani',sans-serif;font-size:.58rem;font-weight:600;letter-spacing:1px;color:var(--muted);margin-top:1px}
 
-/* tips */
-.tips-list{display:flex;flex-direction:column;gap:5px;max-height:150px;overflow-y:auto}
-.tip-item{display:flex;align-items:flex-start;gap:7px;background:var(--card);border-radius:6px;padding:7px 9px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:.62rem;line-height:1.5;animation:fadeIn .3s}
-@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+/* TARGET INPUT */
+.target-row{display:flex;gap:6px;align-items:center}
+.target-inp{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.9rem;outline:none}
+.target-inp:focus{border-color:var(--g)}
+.target-unit{font-family:'Rajdhani',sans-serif;font-size:.7rem;color:var(--muted)}
+
+/* TIPS */
+.tips-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:5px;max-height:140px;overflow-y:auto}
+.tip-row{display:flex;align-items:flex-start;gap:7px;font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:500;line-height:1.4;animation:fadeUp .3s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .tip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.tip-item.warn{border-color:#ffcc0022;color:var(--y)}.tip-item.warn .tip-dot{background:var(--y)}
-.tip-item.good{border-color:#00ff8822;color:var(--g)}.tip-item.good .tip-dot{background:var(--g)}
-.tip-item.bad{border-color:#ff204022;color:var(--r)}.tip-item.bad .tip-dot{background:var(--r)}
-.tip-item.info{border-color:#00aaff22;color:var(--b)}.tip-item.info .tip-dot{background:var(--b)}
+.tip-row.good{color:var(--g)}.tip-row.good .tip-dot{background:var(--g)}
+.tip-row.warn{color:var(--y)}.tip-row.warn .tip-dot{background:var(--y)}
+.tip-row.bad{color:var(--r)}.tip-row.bad .tip-dot{background:var(--r)}
+.tip-row.info{color:var(--b)}.tip-row.info .tip-dot{background:var(--b)}
 
-/* history */
-.hist-list{display:flex;flex-direction:column;gap:4px;max-height:130px;overflow-y:auto}
-.hist-item{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:6px;padding:6px 9px;font-family:'JetBrains Mono',monospace;font-size:.6rem;border:1px solid var(--border)}
-.hi-ex{color:var(--text)}
-.hi-reps{color:var(--g)}
-.hi-score{font-size:.55rem;padding:2px 5px;border-radius:3px;border:1px solid}
-.hi-time{color:var(--muted)}
-.empty-msg{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.62rem;text-align:center;padding:10px 0}
-
-/* controls */
+/* CONTROLS */
 .ctrl-row{display:flex;gap:6px}
-.btn-reset{flex:1;border:1.5px solid var(--border);background:transparent;color:var(--muted);border-radius:8px;padding:10px 0;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1.5px;cursor:pointer;transition:all .2s}
-.btn-reset:hover{background:var(--border);color:var(--text)}
-.btn-voice{border:1.5px solid var(--border);background:transparent;border-radius:8px;padding:10px 12px;font-size:1rem;cursor:pointer;transition:all .2s;color:var(--muted)}
-.btn-voice.on{border-color:var(--b);color:var(--b);background:#00aaff12}
+.btn-new-set{flex:1;background:var(--s3);border:1.5px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.btn-new-set:active{background:var(--border)}
+.btn-voice-toggle{background:var(--s3);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:.9rem;cursor:pointer;transition:all .2s}
+.btn-voice-toggle.on{border-color:var(--b);background:#00b0ff12}
+
+/* HISTORY */
+.hist-box{display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto}
+.hist-item{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:'Rajdhani',sans-serif;font-size:.68rem}
+.hi-ex{color:var(--text);font-weight:600}
+.hi-reps{color:var(--g);font-weight:700}
+.hi-score{padding:1px 5px;border-radius:4px;border:1px solid;font-size:.6rem}
+.hi-time{color:var(--muted)}
+.empty-msg{font-family:'Rajdhani',sans-serif;font-size:.75rem;color:var(--muted);text-align:center;padding:12px 0}
+
+/* ══════════════════════════════════════
+   EXERCISE SELECT SCREEN
+══════════════════════════════════════ */
+#exScreen{background:var(--bg);flex-direction:column}
+.ex-screen-header{padding:16px 16px 0;flex-shrink:0}
+.ex-screen-header h2{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:var(--text)}
+.ex-screen-header p{font-size:.75rem;color:var(--muted);margin-top:2px}
+.ex-screen-body{flex:1;overflow-y:auto;padding:12px 16px 16px}
+.ex-section{margin-bottom:20px}
+.ex-section-title{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ex-section-icon{font-size:1.1rem}
+.ex-section-label{font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.ex-section-line{flex:1;height:1px;background:var(--border)}
+.ex-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ex-card{
+  background:var(--card);border:1.5px solid var(--border);border-radius:14px;
+  padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:pointer;transition:all .2s;text-align:center;
+}
+.ex-card:active{transform:scale(.96)}
+.ex-card.selected{border-color:var(--g);background:#00e67610;box-shadow:0 0 14px #00e67622}
+.ex-card-icon{font-size:1.8rem}
+.ex-card-name{font-family:'Rajdhani',sans-serif;font-size:.8rem;font-weight:700;color:var(--text);line-height:1.2}
+.ex-card-muscle{font-size:.62rem;color:var(--muted)}
+.ex-card-diff{font-size:.55rem;padding:2px 6px;border-radius:4px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px}
+.diff-easy{background:#00e67618;color:var(--g);border:1px solid #00e67633}
+.diff-medium{background:#ffd60018;color:var(--y);border:1px solid #ffd60033}
+.diff-hard{background:#ff174418;color:var(--r);border:1px solid #ff174433}
+.btn-begin{
+  margin:0 16px 16px;padding:16px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--g),var(--b));
+  color:#000;font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:700;
+  letter-spacing:2px;cursor:pointer;box-shadow:0 0 24px #00e67633;
+  transition:all .2s;flex-shrink:0;
+}
+.btn-begin:active{transform:scale(.97)}
+
+/* ══════════════════════════════════════
+   VOICE COMMAND BANNER
+══════════════════════════════════════ */
+.voice-cmd-banner{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(0,0,0,.92);border-top:1.5px solid var(--r);
+  padding:10px 16px;display:flex;align-items:center;gap:10px;
+  transform:translateY(100%);transition:transform .3s;z-index:100;
+  font-family:'Rajdhani',sans-serif;
+}
+.voice-cmd-banner.show{transform:translateY(0)}
+.vcb-mic{font-size:1.2rem;color:var(--r);animation:micPulse 1s infinite}
+.vcb-text{font-size:.85rem;color:var(--text);font-weight:600}
+.vcb-sub{font-size:.7rem;color:var(--muted)}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .right-panel{display:none}
+  .bottom-panel{display:flex}
+}
+.bottom-panel{
+  display:none;flex-shrink:0;
+  background:var(--s1);border-top:1px solid var(--border);
+  flex-direction:column;
+}
+.bottom-tabs{display:flex;border-bottom:1px solid var(--border)}
+.bottom-tab{flex:1;padding:10px 4px;font-family:'Rajdhani',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:1px;text-align:center;color:var(--muted);cursor:pointer;border:none;background:transparent;transition:all .2s;border-top:2px solid transparent}
+.bottom-tab.active{color:var(--g);border-top-color:var(--g)}
+.bottom-content{padding:10px 14px;max-height:220px;overflow-y:auto}
+.bottom-panel-inner{display:none;flex-direction:column;gap:8px}
+.bottom-panel-inner.active{display:flex}
+
+/* EXERCISE QUICK ROW */
+.ex-quick-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.ex-quick-row::-webkit-scrollbar{height:2px}
+.ex-quick-btn{flex-shrink:0;border:1.5px solid var(--border);background:var(--card);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:all .2s;min-width:64px}
+.ex-quick-btn.active{border-color:var(--g);background:#00e67612}
+.ex-quick-btn .eqb-icon{font-size:1.1rem}
+.ex-quick-btn .eqb-name{font-family:'Rajdhani',sans-serif;font-size:.58rem;font-weight:700;color:var(--muted);text-align:center;line-height:1.2}
+.ex-quick-btn.active .eqb-name{color:var(--g)}
 
 @media(max-width:600px){
-  .right-panel{width:100%;height:280px;overflow-x:auto}
-  main{flex-direction:column}
-  .video-col{flex:none;height:calc(100vh - 280px - 52px)}
-  .ex-grid{grid-template-columns:repeat(4,1fr)}
+  .right-panel{display:none}
+  .bottom-panel{display:flex}
+  .workout-body{flex-direction:column}
+  .vid-wrap{flex:none;height:calc(100svh - 52px - 280px)}
 }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">AI <span>GYM</span> COACH</div>
-  <div class="hdr-right">
-    <div class="live-pill" id="livePill"><div class="live-dot"></div><span id="liveText">OFFLINE</span></div>
-    <button class="btn-cam" id="camBtn">START</button>
+<!-- ══ HOME SCREEN ══ -->
+<div class="screen active" id="homeScreen">
+  <div class="home-bg"></div>
+  <div class="home-content">
+    <div class="app-logo">
+      <div class="logo-icon">🏋️</div>
+      <div class="logo-title">FitCoach AI</div>
+      <div class="logo-sub">Professional AI Trainer</div>
+    </div>
+    <div class="home-tagline">
+      <h2>Your Personal AI Gym Coach</h2>
+      <p>Real-time pose detection, rep counting, form correction and voice coaching — all powered by AI.</p>
+    </div>
+    <div class="home-features">
+      <div class="feat-card"><div class="feat-icon">🎯</div><div class="feat-title">Accurate Detection</div><div class="feat-desc">AI tracks 33 body points for precise rep counting</div></div>
+      <div class="feat-card"><div class="feat-icon">🗣️</div><div class="feat-title">Voice Coach</div><div class="feat-desc">Strict teacher voice with breathing cues</div></div>
+      <div class="feat-card"><div class="feat-icon">📊</div><div class="feat-title">Form Scoring</div><div class="feat-desc">Real-time posture correction and feedback</div></div>
+      <div class="feat-card"><div class="feat-icon">🎤</div><div class="feat-title">Voice Commands</div><div class="feat-desc">Say "switch to squats" to change exercise</div></div>
+    </div>
+    <button class="btn-start-app" onclick="goToExScreen()">BEGIN TRAINING →</button>
   </div>
-</header>
+</div>
 
-<main>
-  <!-- VIDEO -->
-  <div class="video-col">
-    <video id="vid" autoplay muted playsinline></video>
-    <canvas id="cvs"></canvas>
-    <div class="no-cam" id="noCam">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1"><path d="M15 10l4.553-2.07A1 1 0 0121 8.82V15.18a1 1 0 01-1.447.89L15 14M4 8h11a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4a2 2 0 012-2z"/></svg>
-      <p>Tap <strong style="color:var(--g)">START</strong> and allow camera.<br/>Stand back so your full body is visible.</p>
-    </div>
-    <div class="ov ov-rep" id="ovRep">0</div>
-    <div class="ov ov-rep-lbl">REPS</div>
-    <div class="ov ov-stage" id="ovStage"></div>
-    <div class="ov ov-angle" id="ovAngle"></div>
-    <div class="breath-overlay" id="breathBox">BREATHE IN</div>
-    <div class="form-alert" id="formAlert"></div>
+<!-- ══ EXERCISE SELECT SCREEN ══ -->
+<div class="screen" id="exScreen">
+  <div class="ex-screen-header">
+    <h2>SELECT EXERCISE</h2>
+    <p>Choose your workout — tap to select, then begin</p>
   </div>
+  <div class="ex-screen-body">
 
-  <!-- RIGHT PANEL -->
-  <div class="right-panel">
-
-    <div class="rp-sec">
-      <div class="rp-lbl">Select Exercise</div>
-      <div class="ex-grid" id="exGrid">
-        <button class="ex-btn active" data-ex="pushup"><span class="ex-icon">💪</span>Push-Up</button>
-        <button class="ex-btn" data-ex="squat"><span class="ex-icon">🦵</span>Squat</button>
-        <button class="ex-btn" data-ex="curl"><span class="ex-icon">🏋️</span>Bicep Curl</button>
-        <button class="ex-btn" data-ex="shoulder"><span class="ex-icon">🙌</span>Shoulder Press</button>
-        <button class="ex-btn" data-ex="lateral"><span class="ex-icon">↔️</span>Lateral Raise</button>
-        <button class="ex-btn" data-ex="armrotate"><span class="ex-icon">🔄</span>Arm Rotation</button>
-        <button class="ex-btn" data-ex="hiprotate"><span class="ex-icon">💃</span>Hip Rotation</button>
-        <button class="ex-btn" data-ex="lunge"><span class="ex-icon">🚶</span>Lunge</button>
+    <div class="ex-section">
+      <div class="ex-section-title">
+        <span class="ex-section-icon">🔥</span>
+        <span class="ex-section-label">Warm Up</span>
+        <div class="ex-section-line"></div>
       </div>
-    </div>
-
-    <div class="rp-sec">
-      <div class="rp-lbl">Target Reps</div>
-      <div class="target-row">
-        <input class="target-input" id="targetInput" type="number" value="10" min="1" max="100"/>
-        <span class="target-lbl">reps</span>
-      </div>
-    </div>
-
-    <div class="rp-sec">
-      <div class="rp-lbl">Rep Counter</div>
-      <div class="rep-big" id="repBig">0</div>
-      <div class="rep-target" id="repTarget">Target: 10 reps</div>
-    </div>
-
-    <div class="rp-sec">
-      <div class="rp-lbl">Form Score</div>
-      <div class="score-row">
-        <div class="score-num" id="scoreNum">0</div>
-        <div class="score-bar-wrap">
-          <div class="score-bar-track"><div class="score-bar-fill" id="scoreBar" style="width:0%"></div></div>
-          <div class="score-grade" id="scoreGrade" style="color:var(--muted)">—</div>
+      <div class="ex-cards">
+        <div class="ex-card selected" data-ex="armrotate" onclick="selectEx(this)">
+          <div class="ex-card-icon">🔄</div>
+          <div class="ex-card-name">Arm Circles</div>
+          <div class="ex-card-muscle">Shoulders • Mobility</div>
+          <div class="ex-card-diff diff-easy">EASY</div>
+        </div>
+        <div class="ex-card" data-ex="hiprotate" onclick="selectEx(this)">
+          <div class="ex-card-icon">💃</div>
+          <div class="ex-card-name">Hip Rotation</div>
+          <div class="ex-card-muscle">Hips • Core</div>
+          <div class="ex-card-diff diff-easy">EASY</div>
+        </div>
+        <div class="ex-card" data-ex="neckroll" onclick="selectEx(this)">
+          <div class="ex-card-icon">🌀</div>
+          <div class="ex-card-name">Neck Roll</div>
+          <div class="ex-card-muscle">Neck • Upper Back</div>
+          <div class="ex-card-diff diff-easy">EASY</div>
+        </div>
+        <div class="ex-card" data-ex="shoulderroll" onclick="selectEx(this)">
+          <div class="ex-card-icon">🏊</div>
+          <div class="ex-card-name">Shoulder Roll</div>
+          <div class="ex-card-muscle">Shoulders • Traps</div>
+          <div class="ex-card-diff diff-easy">EASY</div>
         </div>
       </div>
     </div>
 
-    <div class="rp-sec">
-      <div class="rp-lbl">Session Stats</div>
-      <div class="stats-grid">
-        <div class="stat-box"><div class="stat-val" id="stReps">0</div><div class="stat-key">TOTAL REPS</div></div>
-        <div class="stat-box"><div class="stat-val" id="stSets">0</div><div class="stat-key">SETS</div></div>
-        <div class="stat-box"><div class="stat-val" id="stCal">0</div><div class="stat-key">CALORIES</div></div>
-        <div class="stat-box"><div class="stat-val" id="stBest">—</div><div class="stat-key">BEST FORM</div></div>
+    <div class="ex-section">
+      <div class="ex-section-title">
+        <span class="ex-section-icon">💪</span>
+        <span class="ex-section-label">Upper Body</span>
+        <div class="ex-section-line"></div>
+      </div>
+      <div class="ex-cards">
+        <div class="ex-card" data-ex="pushup" onclick="selectEx(this)">
+          <div class="ex-card-icon">🤸</div>
+          <div class="ex-card-name">Push-Up</div>
+          <div class="ex-card-muscle">Chest • Triceps</div>
+          <div class="ex-card-diff diff-medium">MEDIUM</div>
+        </div>
+        <div class="ex-card" data-ex="curl" onclick="selectEx(this)">
+          <div class="ex-card-icon">💪</div>
+          <div class="ex-card-name">Bicep Curl</div>
+          <div class="ex-card-muscle">Biceps • Forearms</div>
+          <div class="ex-card-diff diff-medium">MEDIUM</div>
+        </div>
+        <div class="ex-card" data-ex="shoulder" onclick="selectEx(this)">
+          <div class="ex-card-icon">🙌</div>
+          <div class="ex-card-name">Shoulder Press</div>
+          <div class="ex-card-muscle">Delts • Triceps</div>
+          <div class="ex-card-diff diff-medium">MEDIUM</div>
+        </div>
+        <div class="ex-card" data-ex="lateral" onclick="selectEx(this)">
+          <div class="ex-card-icon">↔️</div>
+          <div class="ex-card-name">Lateral Raise</div>
+          <div class="ex-card-muscle">Side Delts</div>
+          <div class="ex-card-diff diff-medium">MEDIUM</div>
+        </div>
+        <div class="ex-card" data-ex="tricep" onclick="selectEx(this)">
+          <div class="ex-card-icon">🦾</div>
+          <div class="ex-card-name">Tricep Dip</div>
+          <div class="ex-card-muscle">Triceps • Chest</div>
+          <div class="ex-card-diff diff-medium">MEDIUM</div>
+        </div>
+        <div class="ex-card" data-ex="plank" onclick="selectEx(this)">
+          <div class="ex-card-icon">🧘</div>
+          <div class="ex-card-name">Plank</div>
+          <div class="ex-card-muscle">Core • Shoulders</div>
+          <div class="ex-card-diff diff-hard">HARD</div>
+        </div>
       </div>
     </div>
 
-    <div class="rp-sec">
-      <div class="rp-lbl">Coaching Tips</div>
-      <div class="tips-list" id="tipsList"><div class="empty-msg">Start to get coaching...</div></div>
-    </div>
-
-    <div class="rp-sec">
-      <div class="rp-lbl">Controls</div>
-      <div class="ctrl-row">
-        <button class="btn-reset" id="resetBtn">NEW SET</button>
-        <button class="btn-voice on" id="voiceBtn">🔊</button>
+    <div class="ex-section">
+      <div class="ex-section-title">
+        <span class="ex-section-icon">🦵</span>
+        <span class="ex-section-label">Lower Body</span>
+        <div class="ex-section-line"></div>
       </div>
-    </div>
-
-    <div class="rp-sec">
-      <div class="rp-lbl">Set History</div>
-      <div class="hist-list" id="histList"><div class="empty-msg">No sets yet</div></div>
+      <div class="ex-cards">
+        <div class="ex-card" data-ex="squat" onclick="selectEx(this)">
+          <div class="ex-card-icon">🦵</div>
+          <div class="ex-card-name">Squat</div>
+          <div class="ex-card-muscle">Quads • Glutes</div>
+          <div class="ex-card-diff diff-hard">HARD</div>
+        </div>
+        <div class="ex-card" data-ex="lunge" onclick="selectEx(this)">
+          <div class="ex-card-icon">🚶</div>
+          <div class="ex-card-name">Lunge</div>
+          <div class="ex-card-muscle">Quads • Hamstrings</div>
+          <div class="ex-card-diff diff-hard">HARD</div>
+        </div>
+        <div class="ex-card" data-ex="calf" onclick="selectEx(this)">
+          <div class="ex-card-icon">👟</div>
+          <div class="ex-card-name">Calf Raise</div>
+          <div class="ex-card-muscle">Calves</div>
+          <div class="ex-card-diff diff-easy">EASY</div>
+        </div>
+        <div class="ex-card" data-ex="jumpjack" onclick="selectEx(this)">
+          <div class="ex-card-icon">⭐</div>
+          <div class="ex-card-name">Jumping Jacks</div>
+          <div class="ex-card-muscle">Full Body • Cardio</div>
+          <div class="ex-card-diff diff-medium">MEDIUM</div>
+        </div>
+      </div>
     </div>
 
   </div>
-</main>
+  <button class="btn-begin" onclick="goToWorkout()">START WORKOUT →</button>
+</div>
+
+<!-- ══ WORKOUT SCREEN ══ -->
+<div class="screen" id="workoutScreen">
+  <div class="topbar">
+    <div class="tb-left">
+      <button class="btn-back" onclick="goToExScreen()">← BACK</button>
+      <div class="tb-title" id="tbTitle">FITCOACH AI</div>
+    </div>
+    <div class="tb-right">
+      <div class="live-badge" id="liveBadge"><div class="live-dot"></div><span id="liveText">OFFLINE</span></div>
+      <button class="btn-cam" id="camBtn" onclick="toggleCam()">START</button>
+    </div>
+  </div>
+
+  <div class="workout-body">
+    <!-- VIDEO -->
+    <div class="vid-wrap">
+      <video id="vid" autoplay muted playsinline></video>
+      <canvas id="cvs"></canvas>
+      <div class="no-cam" id="noCam">
+        <div class="no-cam-icon">📷</div>
+        <p>Tap <strong style="color:var(--g)">START</strong> and allow camera.<br/>Stand 2–3 metres back so your full body is visible.</p>
+      </div>
+      <div class="ov ov-rep" id="ovRep">0</div>
+      <div class="ov ov-reps-lbl">REPS</div>
+      <div class="ov ov-target-progress" id="ovProgress"></div>
+      <div class="ov ov-stage" id="ovStage"></div>
+      <div class="ov ov-angle" id="ovAngle"></div>
+      <div class="ov ov-ex-name" id="ovExName">SELECT EXERCISE</div>
+      <div class="breath-toast" id="breathToast">BREATHE IN</div>
+      <div class="form-toast" id="formToast"></div>
+      <div class="mic-status" id="micStatus" title="Voice command">🎤</div>
+    </div>
+
+    <!-- RIGHT PANEL (desktop) -->
+    <div class="right-panel">
+      <div class="rp-tabs">
+        <button class="rp-tab active" onclick="switchRpTab(this,'rpStats')">STATS</button>
+        <button class="rp-tab" onclick="switchRpTab(this,'rpCoach')">COACH</button>
+        <button class="rp-tab" onclick="switchRpTab(this,'rpHistory')">HISTORY</button>
+      </div>
+      <div class="rp-content">
+
+        <div class="rp-panel active" id="rpStats">
+          <div class="sec-label">Rep Counter</div>
+          <div class="rep-card">
+            <div class="rep-num" id="rpRepNum">0</div>
+            <div class="rep-of" id="rpRepOf">— / 10 REPS</div>
+            <div class="rep-progress-bar"><div class="rep-progress-fill" id="rpRepBar" style="width:0%"></div></div>
+          </div>
+          <div class="sec-label">Target</div>
+          <div class="target-row">
+            <input class="target-inp" id="targetInp" type="number" value="10" min="1" max="200"/>
+            <span class="target-unit">reps</span>
+          </div>
+          <div class="sec-label">Form Score</div>
+          <div class="score-card">
+            <div class="score-row">
+              <div class="score-big" id="scoreNum" style="color:var(--muted)">0</div>
+              <div class="score-right">
+                <div class="score-bar-track"><div class="score-bar-fill" id="scoreBar" style="width:0%"></div></div>
+                <div class="score-grade" id="scoreGrade" style="color:var(--muted)">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="sec-label">Session Stats</div>
+          <div class="stats-grid">
+            <div class="stat-box"><div class="stat-val" id="stReps">0</div><div class="stat-key">TOTAL REPS</div></div>
+            <div class="stat-box"><div class="stat-val" id="stSets">0</div><div class="stat-key">SETS</div></div>
+            <div class="stat-box"><div class="stat-val" id="stCal">0</div><div class="stat-key">CALORIES</div></div>
+            <div class="stat-box"><div class="stat-val" id="stBest">—</div><div class="stat-key">BEST FORM</div></div>
+          </div>
+          <div class="ctrl-row">
+            <button class="btn-new-set" onclick="newSet()">NEW SET</button>
+            <button class="btn-voice-toggle on" id="voiceBtn" onclick="toggleVoice()">🔊</button>
+          </div>
+        </div>
+
+        <div class="rp-panel" id="rpCoach">
+          <div class="sec-label">Coaching Tips</div>
+          <div class="tips-box" id="tipsBox"><div class="empty-msg">Start exercising to get coaching...</div></div>
+          <div class="sec-label" style="margin-top:4px">Voice Commands</div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:'Rajdhani',sans-serif;font-size:.68rem;color:var(--muted);line-height:1.8">
+            🎤 <b style="color:var(--text)">"Switch to squats"</b><br/>
+            🎤 <b style="color:var(--text)">"Change to push ups"</b><br/>
+            🎤 <b style="color:var(--text)">"Next exercise"</b><br/>
+            🎤 <b style="color:var(--text)">"New set"</b><br/>
+            🎤 <b style="color:var(--text)">"Stop"</b>
+          </div>
+        </div>
+
+        <div class="rp-panel" id="rpHistory">
+          <div class="sec-label">Set History</div>
+          <div class="hist-box" id="histBox"><div class="empty-msg">No sets recorded yet</div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM PANEL (mobile) -->
+  <div class="bottom-panel">
+    <div class="bottom-tabs">
+      <button class="bottom-tab active" onclick="switchBottomTab(this,'bpExercise')">EXERCISE</button>
+      <button class="bottom-tab" onclick="switchBottomTab(this,'bpStats')">STATS</button>
+      <button class="bottom-tab" onclick="switchBottomTab(this,'bpCoach')">COACH</button>
+    </div>
+    <div class="bottom-content">
+      <div class="bottom-panel-inner active" id="bpExercise">
+        <div class="ex-quick-row" id="exQuickRow"></div>
+        <div class="ctrl-row" style="margin-top:4px">
+          <button class="btn-new-set" onclick="newSet()">NEW SET</button>
+          <button class="btn-voice-toggle on" id="voiceBtnM" onclick="toggleVoice()">🔊</button>
+        </div>
+      </div>
+      <div class="bottom-panel-inner" id="bpStats">
+        <div class="rep-card">
+          <div class="rep-num" id="rpRepNumM">0</div>
+          <div class="rep-of" id="rpRepOfM">— / 10 REPS</div>
+          <div class="rep-progress-bar"><div class="rep-progress-fill" id="rpRepBarM" style="width:0%"></div></div>
+        </div>
+        <div class="target-row">
+          <input class="target-inp" id="targetInpM" type="number" value="10" min="1" max="200"/>
+          <span class="target-unit">reps</span>
+        </div>
+        <div class="score-card">
+          <div class="score-row">
+            <div class="score-big" id="scoreNumM" style="color:var(--muted)">0</div>
+            <div class="score-right">
+              <div class="score-bar-track"><div class="score-bar-fill" id="scoreBarM" style="width:0%"></div></div>
+              <div class="score-grade" id="scoreGradeM" style="color:var(--muted)">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box"><div class="stat-val" id="stRepsM">0</div><div class="stat-key">TOTAL REPS</div></div>
+          <div class="stat-box"><div class="stat-val" id="stSetsM">0</div><div class="stat-key">SETS</div></div>
+          <div class="stat-box"><div class="stat-val" id="stCalM">0</div><div class="stat-key">CALORIES</div></div>
+          <div class="stat-box"><div class="stat-val" id="stBestM">—</div><div class="stat-key">BEST FORM</div></div>
+        </div>
+      </div>
+      <div class="bottom-panel-inner" id="bpCoach">
+        <div class="tips-box" id="tipsBoxM"><div class="empty-msg">Start exercising to get coaching...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VOICE COMMAND BANNER -->
+<div class="voice-cmd-banner" id="vcBanner">
+  <div class="vcb-mic">🎤</div>
+  <div><div class="vcb-text" id="vcText">Listening...</div><div class="vcb-sub">Say an exercise name or command</div></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js" crossorigin="anonymous"></script>
 <script>
-// ═══════════════════════════════════════
-// EXERCISE DEFINITIONS
-// ═══════════════════════════════════════
-const EX = {
-  pushup:{
-    label:'Push-Up', cal:0.35,
-    joints:[11,13,15], // shoulder,elbow,wrist
-    downAngle:75, upAngle:150,
-    minDown:60, maxUp:170,
-    breathDown:'INHALE — GO DOWN', breathUp:'EXHALE — PUSH UP', breathHold:'HOLD AT BOTTOM',
-    goggins_rep:['ONE DOWN! STAY HARD!','GET SOME!','NO QUITTING!','PUSH IT!','LOCK IT OUT!','STAY IN THE FIGHT!','WHO YOU ARE!','CALLOUS YOUR MIND!'],
-    goggins_start:'LOCK IN! PUSH-UPS TIME! INHALE GOING DOWN, EXHALE PUSHING UP! LETS GO!',
-    goggins_done:'THATS WHAT IM TALKING ABOUT! SET COMPLETE! YOU EARNED THAT!',
-    checks:(lm,angle,stage)=>{
-      const tips=[];let score=100;
+// ═══════════════════════════════════════════════════
+// EXERCISE DATABASE
+// ═══════════════════════════════════════════════════
+const EXERCISES = {
+  armrotate:{label:'Arm Circles',icon:'🔄',joints:[11,13,15],downAngle:50,upAngle:150,minDown:35,maxUp:130,cal:.08,arcSub:'arm angle',
+    breath:{down:'EXHALE — ROTATE OUT',up:'INHALE — CIRCLE BACK',hold:'KEEP ROTATING'},
+    voice:{start:'Arm circles! Breathe naturally and make big smooth circles with your arms. Warm up those shoulders!',rep:['One!','Two!','Three!','Four!','Five!','Six!','Seven!','Eight!','Nine!','Ten!'],done:'Good warm up! Shoulders are ready!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;t.push({t:'info',m:'Keep arms fully extended and make big circles'});if(sc>=90)t.push({t:'good',m:'Good arm rotation!'});return{tips:t,score:sc}}},
+  hiprotate:{label:'Hip Rotation',icon:'💃',joints:[23,25,27],downAngle:80,upAngle:160,minDown:60,maxUp:140,cal:.10,arcSub:'hip angle',
+    breath:{down:'EXHALE — ROTATE',up:'INHALE — CENTER',hold:'KEEP GOING'},
+    voice:{start:'Hip rotations! Stand with feet shoulder width apart. Hands on hips. Make big smooth circles. Breathe naturally!',rep:['One!','Two!','Three!','Good!','Five!','Keep going!','Seven!','Eight!','Almost!','Ten!'],done:'Hips warmed up! Great work!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;t.push({t:'info',m:'Feet shoulder-width apart. Big smooth circles!'});t.push({t:'info',m:'Keep upper body still, only hips move'});return{tips:t,score:sc}}},
+  neckroll:{label:'Neck Roll',icon:'🌀',joints:[0,11,12],downAngle:10,upAngle:60,minDown:5,maxUp:45,cal:.05,arcSub:'neck angle',
+    breath:{down:'INHALE — TILT HEAD',up:'EXHALE — ROLL BACK',hold:'SLOW AND STEADY'},
+    voice:{start:'Neck rolls! Move slowly and gently. Never force the movement. Breathe slowly and deeply!',rep:['One!','Good!','Three!','Slow!','Five!','Gentle!','Seven!','Eight!','Nine!','Ten!'],done:'Neck loosened up! Well done!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;t.push({t:'warn',m:'Move slowly! Never force neck movements'});t.push({t:'info',m:'If you feel pain, stop immediately'});return{tips:t,score:sc}}},
+  shoulderroll:{label:'Shoulder Roll',icon:'🏊',joints:[11,13,15],downAngle:40,upAngle:120,minDown:25,maxUp:100,cal:.06,arcSub:'shoulder angle',
+    breath:{down:'INHALE — ROLL BACK',up:'EXHALE — ROLL FORWARD',hold:'KEEP ROLLING'},
+    voice:{start:'Shoulder rolls! Roll both shoulders backward in big smooth circles. Chest up, back straight!',rep:['One!','Two!','Three!','Four!','Five!','Six!','Seven!','Eight!','Nine!','Ten!'],done:'Shoulders warm! Ready to train!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;t.push({t:'info',m:'Roll both shoulders together in big circles'});t.push({t:'info',m:'Chest up, spine straight throughout'});return{tips:t,score:sc}}},
+  pushup:{label:'Push-Up',icon:'🤸',joints:[11,13,15],downAngle:80,upAngle:155,minDown:65,maxUp:145,cal:.35,arcSub:'elbow angle',
+    breath:{down:'INHALE — GO DOWN',up:'EXHALE — PUSH UP',hold:'HOLD AT BOTTOM'},
+    voice:{start:'Push ups! Body straight like a plank. Inhale going down. Exhale pushing up. Lets go!',rep:['One! Push!','Two! Stay hard!','Three! Keep going!','Four! Strong!','Five! Halfway!','Six! Push through!','Seven! Almost!','Eight! Two more!','Nine! Last one!','Ten! Outstanding!'],done:'Excellent push ups! Chest is on fire!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
       const ls=lm[11],rs=lm[12],lh=lm[23],rh=lm[24];
       if(ls&&lh&&ls.visibility>.5&&lh.visibility>.5){
-        const sY=(ls.y+rs.y)/2, hY=(lh.y+rh.y)/2;
-        if(Math.abs(hY-sY)<0.05){tips.push({t:'bad',m:'⛔ Hips sagging! Keep body straight!'});score-=30;}
-        else if(hY-sY<0){tips.push({t:'bad',m:'⛔ Hips too high! Lower them!'});score-=25;}
+        const sY=(ls.y+rs.y)/2,hY=(lh.y+rh.y)/2;
+        if(Math.abs(hY-sY)<0.05){t.push({t:'bad',m:'⛔ Hips sagging! Keep body straight!'});sc-=30;}
+        else if(hY<sY-0.05){t.push({t:'bad',m:'⛔ Hips too high! Lower them!'});sc-=25;}
       }
-      if(stage==='down'&&angle>95){tips.push({t:'warn',m:'⚠ Go lower! Chest near ground!'});score-=20;}
-      if(stage==='up'&&angle<145){tips.push({t:'warn',m:'⚠ Fully extend arms at top!'});score-=15;}
-      if(score>=90)tips.push({t:'good',m:'✓ Perfect push-up form!'});
-      return{tips,score:Math.max(0,score)};
-    }
-  },
-  squat:{
-    label:'Squat', cal:0.32,
-    joints:[23,25,27], // hip,knee,ankle
-    downAngle:95, upAngle:160,
-    minDown:70, maxUp:175,
-    breathDown:'INHALE — GOING DOWN', breathUp:'EXHALE — STAND UP', breathHold:'HOLD AT BOTTOM',
-    goggins_rep:['ONE REP! STAY HARD!','LEGS DONT LIE!','DEEPER!','GET LOW!','STAND UP!','NO SHORTCUTS!','EARN IT!','PUSH THROUGH!'],
-    goggins_start:'SQUAT TIME! INHALE ON THE WAY DOWN, HOLD AT BOTTOM, EXHALE COMING UP! LEGS DONT QUIT!',
-    goggins_done:'LEGS OF STEEL! SET DONE! REST AND GO AGAIN!',
-    checks:(lm,angle,stage)=>{
-      const tips=[];let score=100;
-      const lk=lm[25],la=lm[27],lh=lm[23],ls=lm[11];
-      if(lk&&la&&lk.visibility>.5){
-        const kneeAnkDiff=lk.x-la.x;
-        if(kneeAnkDiff>0.08){tips.push({t:'warn',m:'⚠ Push knees outward — they cave in!'});score-=20;}
-      }
-      if(stage==='down'&&angle>110){tips.push({t:'warn',m:'⚠ Go deeper! Thighs parallel to floor!'});score-=25;}
-      if(ls&&lh&&ls.visibility>.5){
-        if(Math.abs(ls.x-lh.x)>0.14){tips.push({t:'warn',m:'⚠ Chest up! Too much forward lean!'});score-=15;}
-      }
-      if(score>=90)tips.push({t:'good',m:'✓ Excellent squat depth!'});
-      return{tips,score:Math.max(0,score)};
-    }
-  },
-  curl:{
-    label:'Bicep Curl', cal:0.18,
-    joints:[11,13,15],
-    downAngle:150, upAngle:50,
-    minDown:130, maxUp:65,
-    breathDown:'INHALE — LOWER DOWN', breathUp:'EXHALE — CURL UP', breathHold:'SQUEEZE AT TOP',
-    goggins_rep:['CURL IT!','SQUEEZE!','BICEPS BURNING!','KEEP GOING!','FULL ROM!','STAY HARD!','OWN IT!','LOCK IT!'],
-    goggins_start:'BICEP CURL! EXHALE CURLING UP, INHALE LOWERING DOWN! CONTROL THE WEIGHT!',
-    goggins_done:'BICEPS DONE! GREAT SET!',
-    checks:(lm,angle,stage)=>{
-      const tips=[];let score=100;
+      if(s==='down'&&a>100){t.push({t:'warn',m:'⚠ Go lower! Chest near ground!'});sc-=20;}
+      if(s==='up'&&a<140){t.push({t:'warn',m:'⚠ Fully extend arms at top!'});sc-=15;}
+      if(sc>=90)t.push({t:'good',m:'✓ Perfect push-up form!'});
+      return{tips:t,score:Math.max(0,sc)}}},
+  curl:{label:'Bicep Curl',icon:'💪',joints:[11,13,15],downAngle:155,upAngle:45,minDown:140,maxUp:60,cal:.18,arcSub:'elbow angle',
+    breath:{down:'INHALE — LOWER DOWN',up:'EXHALE — CURL UP',hold:'SQUEEZE AT TOP'},
+    voice:{start:'Bicep curls! Elbows pinned to your sides. Exhale curling up. Inhale lowering down. Control the movement!',rep:['One! Squeeze!','Two! Control it!','Three! Feel the burn!','Four! Keep going!','Five! Halfway!','Six! Strong!','Seven! Almost!','Eight! Two more!','Nine! Last one!','Ten! Great set!'],done:'Biceps destroyed! Excellent curls!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
       const ls=lm[11],le=lm[13];
-      if(ls&&le&&ls.visibility>.5){
-        if(Math.abs(le.x-ls.x)>0.12){tips.push({t:'warn',m:'⚠ Elbows drifting! Pin them to sides!'});score-=20;}
-      }
-      if(stage==='up'&&angle>65){tips.push({t:'warn',m:'⚠ Curl higher! Full contraction!'});score-=20;}
-      if(stage==='down'&&angle<135){tips.push({t:'warn',m:'⚠ Lower fully to stretch bicep!'});score-=15;}
-      if(score>=90)tips.push({t:'good',m:'✓ Clean curl technique!'});
-      return{tips,score:Math.max(0,score)};
-    }
-  },
-  shoulder:{
-    label:'Shoulder Press', cal:0.22,
-    joints:[13,11,23],
-    downAngle:75, upAngle:150,
-    minDown:60, maxUp:165,
-    breathDown:'INHALE — LOWER DOWN', breathUp:'EXHALE — PRESS UP', breathHold:'HOLD AT TOP',
-    goggins_rep:['PRESS IT!','OVERHEAD!','PUSH!','LOCK OUT!','SHOULDERS FIRE!','STAY HARD!','OWN IT!','GRIND!'],
-    goggins_start:'SHOULDER PRESS! EXHALE PRESSING UP, INHALE COMING DOWN! PRESS THAT WEIGHT!',
-    goggins_done:'SHOULDERS CRUSHED! SET COMPLETE!',
-    checks:(lm,angle,stage)=>{
-      const tips=[];let score=100;
+      if(ls&&le&&ls.visibility>.5){if(Math.abs(le.x-ls.x)>0.12){t.push({t:'warn',m:'⚠ Elbows drifting! Pin them to your sides!'});sc-=20;}}
+      if(s==='up'&&a>65){t.push({t:'warn',m:'⚠ Curl higher! Full contraction at top!'});sc-=20;}
+      if(s==='down'&&a<135){t.push({t:'warn',m:'⚠ Lower fully! Stretch the bicep!'});sc-=15;}
+      if(sc>=90)t.push({t:'good',m:'✓ Clean curl technique!'});
+      return{tips:t,score:Math.max(0,sc)}}},
+  shoulder:{label:'Shoulder Press',icon:'🙌',joints:[13,11,23],downAngle:75,upAngle:150,minDown:60,maxUp:140,cal:.22,arcSub:'shoulder angle',
+    breath:{down:'INHALE — LOWER DOWN',up:'EXHALE — PRESS UP',hold:'LOCK OUT AT TOP'},
+    voice:{start:'Shoulder press! Exhale pressing up overhead. Inhale coming down. Keep your core tight!',rep:['One! Press!','Two! Overhead!','Three! Lock it!','Four! Strong!','Five! Halfway!','Six! Keep pushing!','Seven! Almost!','Eight! Two more!','Nine! One more!','Ten! Excellent!'],done:'Shoulders on fire! Great pressing!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
       const ls=lm[11],rs=lm[12];
-      if(ls&&rs&&ls.visibility>.5){
-        if(Math.abs(ls.y-rs.y)>0.06){tips.push({t:'warn',m:'⚠ Keep shoulders level! You are tilting!'});score-=20;}
-      }
-      if(stage==='up'&&angle<145){tips.push({t:'warn',m:'⚠ Press all the way up! Lock out!'});score-=20;}
-      if(stage==='down'&&angle>90){tips.push({t:'warn',m:'⚠ Lower to ear level for full range!'});score-=15;}
-      if(score>=90)tips.push({t:'good',m:'✓ Great shoulder press!'});
-      return{tips,score:Math.max(0,score)};
-    }
-  },
-  lateral:{
-    label:'Lateral Raise', cal:0.15,
-    joints:[23,11,13],
-    downAngle:25, upAngle:75,
-    minDown:15, maxUp:60,
-    breathDown:'INHALE — LOWER ARMS', breathUp:'EXHALE — RAISE ARMS', breathHold:'HOLD AT TOP',
-    goggins_rep:['RAISE!','HOLD IT!','CONTROL!','SHOULDER HEIGHT!','STAY HARD!','BURN!','OWN IT!','GRIND!'],
-    goggins_start:'LATERAL RAISE! EXHALE RAISING UP, INHALE LOWERING! RAISE TO SHOULDER HEIGHT!',
-    goggins_done:'SHOULDERS ON FIRE! SET DONE!',
-    checks:(lm,angle,stage)=>{
-      const tips=[];let score=100;
+      if(ls&&rs&&ls.visibility>.5){if(Math.abs(ls.y-rs.y)>0.06){t.push({t:'warn',m:'⚠ Keep shoulders level! You are tilting!'});sc-=20;}}
+      if(s==='up'&&a<140){t.push({t:'warn',m:'⚠ Press all the way up! Lock out arms!'});sc-=20;}
+      if(s==='down'&&a>90){t.push({t:'warn',m:'⚠ Lower to ear level for full range!'});sc-=15;}
+      if(sc>=90)t.push({t:'good',m:'✓ Great shoulder press form!'});
+      return{tips:t,score:Math.max(0,sc)}}},
+  lateral:{label:'Lateral Raise',icon:'↔️',joints:[23,11,13],downAngle:25,upAngle:75,minDown:15,maxUp:60,cal:.15,arcSub:'arm angle',
+    breath:{down:'INHALE — LOWER ARMS',up:'EXHALE — RAISE ARMS',hold:'HOLD AT TOP'},
+    voice:{start:'Lateral raises! Raise arms to shoulder height. Lead with your elbows. Control the movement!',rep:['One! Hold!','Two! Control!','Three! Shoulder height!','Four! Good!','Five! Halfway!','Six! Almost!','Seven! Keep it!','Eight! Two more!','Nine! Last one!','Ten! Superb!'],done:'Side delts hit perfectly! Well done!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
       const le=lm[13],lw=lm[15];
-      if(le&&lw&&le.visibility>.5){
-        if(lw.y>le.y+0.04){tips.push({t:'warn',m:'⚠ Lead with elbows, not wrists!'});score-=15;}
+      if(le&&lw&&le.visibility>.5){if(lw.y>le.y+0.04){t.push({t:'warn',m:'⚠ Lead with elbows, not wrists!'});sc-=15;}}
+      if(s==='up'&&a<60){t.push({t:'warn',m:'⚠ Raise to shoulder height!'});sc-=20;}
+      if(s==='up'&&a>100){t.push({t:'warn',m:'⚠ Do not go above shoulder level!'});sc-=15;}
+      if(sc>=90)t.push({t:'good',m:'✓ Nice lateral raise!'});
+      return{tips:t,score:Math.max(0,sc)}}},
+  tricep:{label:'Tricep Dip',icon:'🦾',joints:[11,13,15],downAngle:80,upAngle:155,minDown:65,maxUp:145,cal:.25,arcSub:'elbow angle',
+    breath:{down:'INHALE — DIP DOWN',up:'EXHALE — PUSH UP',hold:'HOLD AT BOTTOM'},
+    voice:{start:'Tricep dips! Lower yourself slowly. Elbows point back not out. Push through your palms!',rep:['One! Strong!','Two! Push!','Three! Arms burning!','Four! Keep it!','Five! Halfway!','Six! Push through!','Seven! Almost!','Eight! Two more!','Nine! Last one!','Ten! Incredible!'],done:'Triceps smashed! Excellent work!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
+      const ls=lm[11],le=lm[13],lw=lm[15];
+      if(le&&ls&&le.visibility>.5){if(le.x-ls.x>0.1){t.push({t:'warn',m:'⚠ Elbows pointing back, not flaring out!'});sc-=20;}}
+      if(s==='down'&&a>95){t.push({t:'warn',m:'⚠ Dip lower for full range of motion!'});sc-=20;}
+      if(sc>=90)t.push({t:'good',m:'✓ Perfect tricep dip form!'});
+      return{tips:t,score:Math.max(0,sc)}}},
+  plank:{label:'Plank',icon:'🧘',joints:[11,23,25],downAngle:160,upAngle:175,minDown:150,maxUp:165,cal:.08,arcSub:'body angle',
+    breath:{down:'INHALE DEEPLY',up:'EXHALE SLOWLY',hold:'BREATHE AND HOLD'},
+    voice:{start:'Plank position! Body straight from head to heels. Core tight. Breathe slowly and hold!',rep:['Hold!','Hold tight!','Core engaged!','Do not drop!','Breathe!','Stay strong!','Hold it!','Almost!','Keep going!','Outstanding!'],done:'Plank complete! Core of steel!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
+      const ls=lm[11],lh=lm[23],lk=lm[25];
+      if(ls&&lh&&lk&&ls.visibility>.5&&lh.visibility>.5){
+        const bodyAngle=calcAngle(ls,lh,lk);
+        if(bodyAngle<155){t.push({t:'bad',m:'⛔ Hips sagging! Lift them up!'});sc-=30;}
+        if(bodyAngle>185){t.push({t:'warn',m:'⚠ Hips too high! Lower them!'});sc-=20;}
       }
-      if(stage==='up'&&angle<65){tips.push({t:'warn',m:'⚠ Raise to shoulder height!'});score-=20;}
-      if(stage==='up'&&angle>100){tips.push({t:'warn',m:'⚠ Do not go above shoulder level!'});score-=15;}
-      if(score>=90)tips.push({t:'good',m:'✓ Nice lateral raise!'});
-      return{tips,score:Math.max(0,score)};
-    }
-  },
-  armrotate:{
-    label:'Arm Rotation', cal:0.10,
-    joints:[11,13,15],
-    downAngle:60, upAngle:160,
-    minDown:40, maxUp:140,
-    breathDown:'EXHALE — ROTATE OUT', breathUp:'INHALE — ROTATE IN', breathHold:'KEEP ROTATING',
-    goggins_rep:['ROTATE!','FULL CIRCLE!','KEEP GOING!','LOOSEN UP!','ARMS WARM!','STAY HARD!','OWN IT!','GRIND!'],
-    goggins_start:'ARM ROTATIONS! BREATHE NATURALLY AND ROTATE THOSE ARMS! WARM UP THOSE SHOULDERS!',
-    goggins_done:'ARMS WARMED UP! GREAT WORK!',
-    checks:(lm,angle,stage)=>{
-      const tips=[];let score=100;
-      const ls=lm[11],lw=lm[15];
-      if(ls&&lw&&ls.visibility>.5){
-        tips.push({t:'info',m:'ℹ Keep arms straight, big circles!'});
-      }
-      if(score>=90)tips.push({t:'good',m:'✓ Good arm rotation!'});
-      return{tips,score:Math.max(0,score)};
-    }
-  },
-  hiprotate:{
-    label:'Hip Rotation', cal:0.12,
-    joints:[23,25,27],
-    downAngle:80, upAngle:160,
-    minDown:60, maxUp:140,
-    breathDown:'EXHALE — ROTATE', breathUp:'INHALE — CENTER', breathHold:'KEEP ROTATING',
-    goggins_rep:['ROTATE!','HIP CIRCLE!','LOOSEN UP!','CORE TIGHT!','KEEP GOING!','STAY HARD!','OWN IT!','GRIND!'],
-    goggins_start:'HIP ROTATIONS! BREATHE NATURALLY AND ROTATE THOSE HIPS! LOOSEN THAT CORE!',
-    goggins_done:'HIPS WARMED UP! GREAT WORK!',
-    checks:(lm,angle,stage)=>{
-      const tips=[];let score=100;
-      const lh=lm[23],rh=lm[24];
-      if(lh&&rh&&lh.visibility>.5){
-        tips.push({t:'info',m:'ℹ Keep feet shoulder-width apart!'});
-        tips.push({t:'info',m:'ℹ Hands on hips, big smooth circles!'});
-      }
-      if(score>=90)tips.push({t:'good',m:'✓ Good hip rotation!'});
-      return{tips,score:Math.max(0,score)};
-    }
-  },
-  lunge:{
-    label:'Lunge', cal:0.28,
-    joints:[23,25,27],
-    downAngle:90, upAngle:165,
-    minDown:75, maxUp:155,
-    breathDown:'INHALE — LUNGE DOWN', breathUp:'EXHALE — STAND UP', breathHold:'HOLD AT BOTTOM',
-    goggins_rep:['LUNGE!','DRIVE UP!','NEXT LEG!','STAY LOW!','POWER UP!','STAY HARD!','GRIND!','OWN IT!'],
-    goggins_start:'LUNGES! INHALE GOING DOWN, EXHALE DRIVING BACK UP! KEEP THAT FRONT KNEE OVER ANKLE!',
-    goggins_done:'LEGS DESTROYED! GREAT SET!',
-    checks:(lm,angle,stage)=>{
-      const tips=[];let score=100;
+      if(sc>=90)t.push({t:'good',m:'✓ Perfect plank position!'});
+      return{tips:t,score:Math.max(0,sc)}}},
+  squat:{label:'Squat',icon:'🦵',joints:[23,25,27],downAngle:95,upAngle:162,minDown:75,maxUp:150,cal:.32,arcSub:'knee angle',
+    breath:{down:'INHALE — GO DOWN',up:'EXHALE — STAND UP',hold:'HOLD AT BOTTOM'},
+    voice:{start:'Squats! Feet shoulder width apart. Chest up. Inhale going down. Exhale standing up. Go deep!',rep:['One! Stand!','Two! Deeper!','Three! Strong!','Four! Drive up!','Five! Halfway!','Six! Power!','Seven! Almost!','Eight! Two more!','Nine! Last one!','Ten! Legs of steel!'],done:'Legs destroyed! Phenomenal squats!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
+      const lk=lm[25],la=lm[27],ls=lm[11],lh=lm[23];
+      if(lk&&la&&lk.visibility>.5){if(lk.x-la.x>0.08){t.push({t:'warn',m:'⚠ Knees caving in! Push them outward!'});sc-=20;}}
+      if(s==='down'&&a>110){t.push({t:'warn',m:'⚠ Go deeper! Thighs parallel to floor!'});sc-=25;}
+      if(ls&&lh&&ls.visibility>.5){if(Math.abs(ls.x-lh.x)>0.14){t.push({t:'warn',m:'⚠ Chest up! Too much forward lean!'});sc-=15;}}
+      if(sc>=90)t.push({t:'good',m:'✓ Excellent squat depth!'});
+      return{tips:t,score:Math.max(0,sc)}}},
+  lunge:{label:'Lunge',icon:'🚶',joints:[23,25,27],downAngle:90,upAngle:162,minDown:75,maxUp:148,cal:.28,arcSub:'knee angle',
+    breath:{down:'INHALE — LUNGE DOWN',up:'EXHALE — DRIVE UP',hold:'HOLD AT BOTTOM'},
+    voice:{start:'Lunges! Step forward. Front knee over ankle. Inhale going down. Exhale driving back up!',rep:['One! Drive up!','Two! Next leg!','Three! Power!','Four! Strong!','Five! Halfway!','Six! Almost!','Seven! Keep going!','Eight! Two more!','Nine! Last one!','Ten! Superb!'],done:'Legs on fire! Great lunges!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
       const lk=lm[25],la=lm[27];
-      if(lk&&la&&lk.visibility>.5){
-        if(lk.x-la.x>0.1){tips.push({t:'warn',m:'⚠ Front knee over ankle! Do not cave in!'});score-=25;}
-      }
-      if(stage==='down'&&angle>105){tips.push({t:'warn',m:'⚠ Lunge deeper! 90 degree angle!'});score-=20;}
-      if(score>=90)tips.push({t:'good',m:'✓ Perfect lunge form!'});
-      return{tips,score:Math.max(0,score)};
-    }
-  }
+      if(lk&&la&&lk.visibility>.5){if(lk.x-la.x>0.1){t.push({t:'warn',m:'⚠ Front knee over ankle! Do not cave in!'});sc-=25;}}
+      if(s==='down'&&a>105){t.push({t:'warn',m:'⚠ Lunge deeper! Aim for 90 degrees!'});sc-=20;}
+      if(sc>=90)t.push({t:'good',m:'✓ Perfect lunge form!'});
+      return{tips:t,score:Math.max(0,sc)}}},
+  calf:{label:'Calf Raise',icon:'👟',joints:[25,27,31],downAngle:80,upAngle:120,minDown:70,maxUp:108,cal:.10,arcSub:'ankle angle',
+    breath:{down:'INHALE — LOWER DOWN',up:'EXHALE — RISE UP',hold:'HOLD AT TOP'},
+    voice:{start:'Calf raises! Rise up onto your toes as high as possible. Hold at the top. Lower slowly!',rep:['One! Hold!','Two! Higher!','Three! Good!','Four! Rise!','Five! Halfway!','Six! Keep it!','Seven! Almost!','Eight! Two more!','Nine! Last one!','Ten! Calves burning!'],done:'Calves done! Great isolation work!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
+      if(s==='up'&&a<105){t.push({t:'warn',m:'⚠ Rise higher onto your toes!'});sc-=20;}
+      if(s==='down'&&a>90){t.push({t:'warn',m:'⚠ Lower your heels fully to ground!'});sc-=15;}
+      t.push({t:'info',m:'Hold at the top for 1 second for best results'});
+      if(sc>=90)t.push({t:'good',m:'✓ Great calf raise!'});
+      return{tips:t,score:Math.max(0,sc)}}},
+  jumpjack:{label:'Jumping Jacks',icon:'⭐',joints:[11,23,25],downAngle:20,upAngle:80,minDown:10,maxUp:65,cal:.45,arcSub:'arm angle',
+    breath:{down:'INHALE — ARMS DOWN',up:'EXHALE — ARMS UP',hold:'KEEP JUMPING'},
+    voice:{start:'Jumping jacks! Jump feet out as arms go up. Jump feet in as arms come down. Keep a steady rhythm!',rep:['One!','Two!','Three!','Four!','Five!','Six!','Seven!','Eight!','Nine!','Ten!'],done:'Cardio complete! Heart rate up!'},
+    checks:(lm,a,s)=>{const t=[];let sc=100;
+      t.push({t:'info',m:'Keep a steady rhythm. Land softly on feet!'});
+      if(sc>=90)t.push({t:'good',m:'✓ Good jumping jack form!'});
+      return{tips:t,score:Math.max(0,sc)}}}
 };
 
-// ═══════════════════════════════════════
+const EX_ORDER=Object.keys(EXERCISES);
+
+// ═══════════════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════
-let activeEx='pushup', reps=0, sets=0, stage=null;
-let running=false, stream=null, voiceOn=true;
-let formScores=[], totalCal=0, bestForm=0, history=[];
-let pose=null, raf=null;
-let lastTipTime=0, lastBreathTime=0;
-let repGoal=10, totalRepsSession=0;
-let lastAngle=0, angleBuffer=[];
-let gogIdx=0;
+// ═══════════════════════════════════════════════════
+let activeEx='armrotate',reps=0,sets=0,stage=null;
+let running=false,stream=null,voiceOn=true;
+let formScores=[],totalCal=0,bestForm=0,history=[];
+let pose=null,raf=null;
+let lastTipTime=0,lastBreathTime=0,lastSpeakTime=0;
+let repGoal=10,totalRepsSession=0;
+let angleBuffer=[];
+let repIdx=0;
+let recognition=null,listeningVC=false;
 
-// ═══════════════════════════════════════
-// DOM
-// ═══════════════════════════════════════
-const vid=document.getElementById('vid');
-const cvs=document.getElementById('cvs');
-const ctx=cvs.getContext('2d');
-const noCam=document.getElementById('noCam');
-const livePill=document.getElementById('livePill');
-const liveText=document.getElementById('liveText');
-const camBtn=document.getElementById('camBtn');
-const ovRep=document.getElementById('ovRep');
-const ovStage=document.getElementById('ovStage');
-const ovAngle=document.getElementById('ovAngle');
-const breathBox=document.getElementById('breathBox');
-const formAlert=document.getElementById('formAlert');
-const repBig=document.getElementById('repBig');
-const repTarget=document.getElementById('repTarget');
-const scoreNum=document.getElementById('scoreNum');
-const scoreBar=document.getElementById('scoreBar');
-const scoreGrade=document.getElementById('scoreGrade');
-const stReps=document.getElementById('stReps');
-const stSets=document.getElementById('stSets');
-const stCal=document.getElementById('stCal');
-const stBest=document.getElementById('stBest');
-const tipsList=document.getElementById('tipsList');
-const histList=document.getElementById('histList');
-const resetBtn=document.getElementById('resetBtn');
-const voiceBtn=document.getElementById('voiceBtn');
-const targetInput=document.getElementById('targetInput');
-
-// ═══════════════════════════════════════
-// MATH
-// ═══════════════════════════════════════
-function calcAngle(a,b,c){
-  const ab={x:a.x-b.x,y:a.y-b.y};
-  const cb={x:c.x-b.x,y:c.y-b.y};
-  const dot=ab.x*cb.x+ab.y*cb.y;
-  const cos=dot/(Math.hypot(ab.x,ab.y)*Math.hypot(cb.x,cb.y));
-  return Math.round(Math.acos(Math.max(-1,Math.min(1,cos)))*180/Math.PI);
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goToExScreen(){showScreen('exScreen')}
+function goToWorkout(){
+  showScreen('workoutScreen');
+  buildQuickRow();
+  updateExUI();
+  initVoiceRecognition();
 }
 
-// smooth angle with buffer
+// ═══════════════════════════════════════════════════
+// EXERCISE SELECTION
+// ═══════════════════════════════════════════════════
+function selectEx(el){
+  document.querySelectorAll('.ex-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  activeEx=el.dataset.ex;
+}
+
+function buildQuickRow(){
+  const row=document.getElementById('exQuickRow');
+  row.innerHTML=EX_ORDER.map(k=>`
+    <div class="ex-quick-btn ${k===activeEx?'active':''}" data-ex="${k}" onclick="switchExQuick(this,'${k}')">
+      <div class="eqb-icon">${EXERCISES[k].icon}</div>
+      <div class="eqb-name">${EXERCISES[k].label}</div>
+    </div>`).join('');
+}
+
+function switchExQuick(el,ex){
+  document.querySelectorAll('.ex-quick-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  if(reps>0)saveHistory();
+  activeEx=ex;reps=0;stage=null;formScores=[];angleBuffer=[];repIdx=0;
+  updateExUI();updateRepUI();setScore(0);
+  if(running)speak(EXERCISES[activeEx].voice.start,true);
+}
+
+function updateExUI(){
+  const ex=EXERCISES[activeEx];
+  document.getElementById('tbTitle').textContent=ex.label.toUpperCase();
+  document.getElementById('ovExName').textContent=ex.label;
+}
+
+// ═══════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════
+function switchRpTab(btn,panelId){
+  document.querySelectorAll('.rp-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.rp-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+function switchBottomTab(btn,panelId){
+  document.querySelectorAll('.bottom-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.bottom-panel-inner').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════
+// MATH
+// ═══════════════════════════════════════════════════
+function calcAngle(a,b,c){
+  const ab={x:a.x-b.x,y:a.y-b.y},cb={x:c.x-b.x,y:c.y-b.y};
+  const cos=(ab.x*cb.x+ab.y*cb.y)/(Math.hypot(ab.x,ab.y)*Math.hypot(cb.x,cb.y));
+  return Math.round(Math.acos(Math.max(-1,Math.min(1,cos)))*180/Math.PI);
+}
 function smoothAngle(raw){
   angleBuffer.push(raw);
-  if(angleBuffer.length>5)angleBuffer.shift();
+  if(angleBuffer.length>6)angleBuffer.shift();
   return Math.round(angleBuffer.reduce((a,b)=>a+b,0)/angleBuffer.length);
 }
 
-// ═══════════════════════════════════════
-// VOICE — Goggins Style
-// ═══════════════════════════════════════
-let lastSpoken='', speakQueue=[];
+// ═══════════════════════════════════════════════════
+// VOICE — strict teacher style
+// ═══════════════════════════════════════════════════
+let lastSpoken='';
 function speak(text,force=false){
   if(!voiceOn||!window.speechSynthesis)return;
-  if(!force&&text===lastSpoken)return;
-  lastSpoken=text;
+  const now=Date.now();
+  if(!force&&(text===lastSpoken||now-lastSpeakTime<1800))return;
+  lastSpoken=text;lastSpeakTime=now;
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
-  u.rate=1.1;u.pitch=0.85;u.volume=1;
-  // pick a deep voice if available
+  u.rate=1.05;u.pitch=0.75;u.volume=1;
   const voices=speechSynthesis.getVoices();
-  const deep=voices.find(v=>v.name.toLowerCase().includes('male')||v.name.toLowerCase().includes('david')||v.name.toLowerCase().includes('daniel'));
+  const deep=voices.find(v=>v.lang==='en-US'&&(v.name.includes('Male')||v.name.includes('David')||v.name.includes('Daniel')||v.name.includes('Alex')||v.name.includes('Google UK English Male')));
   if(deep)u.voice=deep;
   speechSynthesis.speak(u);
 }
 
-// ═══════════════════════════════════════
-// BREATHING CUES
-// ═══════════════════════════════════════
-function showBreath(text,type='inhale'){
-  breathBox.textContent=text;
-  breathBox.className='breath-overlay show'+(type==='exhale'?' exhale':type==='hold'?' hold':'');
-  clearTimeout(breathBox._t);
-  breathBox._t=setTimeout(()=>breathBox.classList.remove('show'),2500);
+function toggleVoice(){
+  voiceOn=!voiceOn;
+  const b1=document.getElementById('voiceBtn'),b2=document.getElementById('voiceBtnM');
+  [b1,b2].forEach(b=>{if(b){b.classList.toggle('on',voiceOn);b.textContent=voiceOn?'🔊':'🔇';}});
+  if(!voiceOn)speechSynthesis.cancel();
 }
 
-// ═══════════════════════════════════════
-// FORM ALERT
-// ═══════════════════════════════════════
-function showAlert(text,type='warn'){
-  formAlert.textContent=text;
-  formAlert.className='form-alert show '+(type==='good'?'good':type==='bad'?'bad':'');
-  clearTimeout(formAlert._t);
-  formAlert._t=setTimeout(()=>formAlert.classList.remove('show'),2000);
+// ═══════════════════════════════════════════════════
+// BREATHING
+// ═══════════════════════════════════════════════════
+function showBreath(text,type){
+  const t=document.getElementById('breathToast');
+  t.textContent=text;t.className='breath-toast show '+type;
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);
 }
 
-// ═══════════════════════════════════════
-// UI UPDATE
-// ═══════════════════════════════════════
-function setScore(score){
-  scoreNum.textContent=score;
-  const col=score>=80?'var(--g)':score>=55?'var(--y)':'var(--r)';
-  scoreNum.style.color=col;
-  scoreBar.style.width=score+'%';
-  scoreBar.style.background=col;
-  const grade=score>=90?'PERFECT':score>=75?'GREAT':score>=55?'GOOD':score>=35?'NEEDS WORK':'BAD FORM';
-  scoreGrade.textContent=grade;scoreGrade.style.color=col;
+// ═══════════════════════════════════════════════════
+// FORM TOAST
+// ═══════════════════════════════════════════════════
+function showFormToast(text,type){
+  const t=document.getElementById('formToast');
+  t.textContent=text;t.className='form-toast show '+type;
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2000);
 }
 
-function setStage(s){
-  stage=s;
-  ovStage.textContent=s?s.toUpperCase():'';
-  ovStage.className='ov ov-stage'+(s?' '+s:'');
-}
-
-function popRep(){
-  repBig.classList.add('pop');
-  setTimeout(()=>repBig.classList.remove('pop'),150);
-}
-
-function setTips(tips){
-  if(!tips.length)return;
-  tipsList.innerHTML=tips.map(t=>`<div class="tip-item ${t.t}"><div class="tip-dot"></div><span>${t.m}</span></div>`).join('');
-  const bad=tips.find(t=>t.t==='bad'||t.t==='warn');
-  if(bad)showAlert(bad.m,bad.t==='bad'?'bad':'warn');
-}
-
-// ═══════════════════════════════════════
-// REP COUNTING — strict thresholds
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// REP COUNT
+// ═══════════════════════════════════════════════════
 function countRep(angle){
-  const ex=EX[activeEx];
-  // must go below minDown threshold to register as "down"
+  const ex=EXERCISES[activeEx];
   if(angle<=ex.minDown){
     if(stage!=='down'){
-      setStage('down');
-      showBreath(ex.breathDown,'inhale');
-      if(Date.now()-lastBreathTime>3000){
-        speak(ex.breathDown.replace(/[—✓⚠⛔↑⬇]/g,''));
-        lastBreathTime=Date.now();
+      stage='down';
+      updateStageUI();
+      const now=Date.now();
+      if(now-lastBreathTime>2500){
+        showBreath(ex.breath.down,'inhale');
+        lastBreathTime=now;
+        speak(ex.breath.down.replace(/[—↑⬇]/g,'').trim());
       }
     }
   }
-  // must go above maxUp threshold to register as "up" (from down)
   if(angle>=ex.maxUp&&stage==='down'){
-    setStage('up');
-    showBreath(ex.breathUp,'exhale');
-    reps++;
-    totalRepsSession++;
-    repBig.textContent=reps;
-    ovRep.textContent=reps;
-    stReps.textContent=totalRepsSession;
-    // calories
-    totalCal+=ex.cal;
-    stCal.textContent=Math.round(totalCal);
+    stage='up';
+    updateStageUI();
+    showBreath(ex.breath.up,'exhale');
+    reps++;totalRepsSession++;repIdx++;
+    updateRepUI();
     popRep();
-    // goggins voice
-    const msg=ex.goggins_rep[gogIdx%ex.goggins_rep.length];
-    speak(reps+'. '+msg,true);
-    gogIdx++;
-    // target reached
+    const repMsg=ex.voice.rep[(repIdx-1)%ex.voice.rep.length];
+    speak(repIdx+'. '+repMsg,true);
+    totalCal+=ex.cal;
+    updateStats();
     if(reps>=repGoal){
-      setTimeout(()=>speak(ex.goggins_done,true),1500);
-      showAlert('🎯 TARGET REACHED! '+repGoal+' REPS!','good');
+      setTimeout(()=>speak(ex.voice.done,true),1200);
+      showFormToast('🎯 TARGET REACHED! '+repGoal+' REPS DONE!','good');
     }
-    speak(ex.breathUp.replace(/[—✓⚠⛔↑⬇]/g,''));
   }
 }
 
-// ═══════════════════════════════════════
+function updateStageUI(){
+  const el=document.getElementById('ovStage');
+  el.textContent=stage?stage.toUpperCase():'';
+  el.className='ov ov-stage'+(stage?' '+stage:'');
+}
+
+function popRep(){
+  const el=document.getElementById('ovRep');
+  el.classList.add('pop');setTimeout(()=>el.classList.remove('pop'),150);
+}
+
+function updateRepUI(){
+  const goal=parseInt(document.getElementById('targetInp').value)||10;
+  repGoal=goal;
+  const pct=Math.min((reps/goal)*100,100);
+  ['','M'].forEach(s=>{
+    const n=document.getElementById('rpRepNum'+s);
+    const o=document.getElementById('rpRepOf'+s);
+    const b=document.getElementById('rpRepBar'+s);
+    if(n)n.textContent=reps;
+    if(o)o.textContent=reps+' / '+goal+' REPS';
+    if(b)b.style.width=pct+'%';
+  });
+  document.getElementById('ovRep').textContent=reps;
+  document.getElementById('ovProgress').textContent=reps+'/'+goal;
+}
+
+// ═══════════════════════════════════════════════════
+// SCORE
+// ═══════════════════════════════════════════════════
+function setScore(score){
+  const col=score>=80?'var(--g)':score>=55?'var(--y)':'var(--r)';
+  const grade=score>=90?'PERFECT':score>=75?'GREAT':score>=55?'GOOD':score>0?'NEEDS WORK':'—';
+  ['','M'].forEach(s=>{
+    const n=document.getElementById('scoreNum'+s);
+    const b=document.getElementById('scoreBar'+s);
+    const g=document.getElementById('scoreGrade'+s);
+    if(n){n.textContent=score;n.style.color=col;}
+    if(b){b.style.width=score+'%';b.style.background=col;}
+    if(g){g.textContent=grade;g.style.color=col;}
+  });
+}
+
+function setTips(tips){
+  const html=tips.map(t=>`<div class="tip-row ${t.t}"><div class="tip-dot"></div><span>${t.m}</span></div>`).join('');
+  ['tipsBox','tipsBoxM'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.innerHTML=html||'<div class="empty-msg">Keep going...</div>';
+  });
+  const bad=tips.find(t=>t.t==='bad'||t.t==='warn');
+  if(bad)showFormToast(bad.m,bad.t);
+}
+
+function updateStats(){
+  ['','M'].forEach(s=>{
+    const r=document.getElementById('stReps'+s);
+    const c=document.getElementById('stCal'+s);
+    const se=document.getElementById('stSets'+s);
+    const b=document.getElementById('stBest'+s);
+    if(r)r.textContent=totalRepsSession;
+    if(c)c.textContent=Math.round(totalCal);
+    if(se)se.textContent=sets;
+    if(b)b.textContent=bestForm>0?bestForm+'%':'—';
+  });
+}
+
+// ═══════════════════════════════════════════════════
 // SKELETON
-// ═══════════════════════════════════════
-const CONNECTIONS=[
+// ═══════════════════════════════════════════════════
+const CONNS=[
   [0,1],[1,2],[2,3],[3,7],[0,4],[4,5],[5,6],[6,8],[9,10],
   [11,12],[11,13],[13,15],[15,17],[15,19],[17,19],
   [12,14],[14,16],[16,18],[16,20],[18,20],
@@ -624,8 +965,8 @@ const CONNECTIONS=[
 function drawSkeleton(lm){
   const w=cvs.width,h=cvs.height;
   ctx.clearRect(0,0,w,h);
-  ctx.lineWidth=2;ctx.strokeStyle='#cc44ffaa';
-  for(const[i,j]of CONNECTIONS){
+  ctx.lineWidth=2;ctx.strokeStyle='#9c27b099';
+  for(const[i,j]of CONNS){
     const a=lm[i],b=lm[j];
     if(!a||!b||a.visibility<0.5||b.visibility<0.5)continue;
     ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.lineTo(b.x*w,b.y*h);ctx.stroke();
@@ -633,12 +974,11 @@ function drawSkeleton(lm){
   for(const lmk of lm){
     if(!lmk||lmk.visibility<0.5)continue;
     ctx.beginPath();ctx.arc(lmk.x*w,lmk.y*h,4,0,Math.PI*2);
-    ctx.fillStyle='#00ff88';ctx.shadowBlur=8;ctx.shadowColor='#00ff88';
+    ctx.fillStyle='#00e676';ctx.shadowBlur=8;ctx.shadowColor='#00e676';
     ctx.fill();ctx.shadowBlur=0;
   }
-  // highlight active joints
-  const trio=EX[activeEx].joints;
-  const tc=['#ffcc00','#ff2040','#ffcc00'];
+  const trio=EXERCISES[activeEx].joints;
+  const tc=['#ffd600','#ff1744','#ffd600'];
   trio.forEach((idx,i)=>{
     const l=lm[idx];if(!l||l.visibility<0.5)return;
     ctx.beginPath();ctx.arc(l.x*w,l.y*h,9,0,Math.PI*2);
@@ -647,24 +987,26 @@ function drawSkeleton(lm){
   });
 }
 
-// ═══════════════════════════════════════
-// MEDIAPIPE RESULTS
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// MEDIAPIPE
+// ═══════════════════════════════════════════════════
+const vid=document.getElementById('vid');
+const cvs=document.getElementById('cvs');
+const ctx=cvs.getContext('2d');
+
 function onResults(res){
-  cvs.width=vid.videoWidth||640;
-  cvs.height=vid.videoHeight||480;
+  cvs.width=vid.videoWidth||640;cvs.height=vid.videoHeight||480;
   if(!res.poseLandmarks){ctx.clearRect(0,0,cvs.width,cvs.height);return;}
   const lm=res.poseLandmarks;
   drawSkeleton(lm);
-  const ex=EX[activeEx];
+  const ex=EXERCISES[activeEx];
   const[ai,bi,ci]=ex.joints;
   const a=lm[ai],b=lm[bi],c=lm[ci];
   if(!a||!b||!c||a.visibility<0.45||b.visibility<0.45||c.visibility<0.45)return;
-  const rawAngle=calcAngle(a,b,c);
-  const angle=smoothAngle(rawAngle);
-  ovAngle.textContent=angle+'°';
+  const raw=calcAngle(a,b,c);
+  const angle=smoothAngle(raw);
+  document.getElementById('ovAngle').textContent=angle+'°';
   countRep(angle);
-  // form check every 900ms
   const now=Date.now();
   if(now-lastTipTime>900){
     lastTipTime=now;
@@ -673,14 +1015,11 @@ function onResults(res){
     if(formScores.length>15)formScores.shift();
     const avg=Math.round(formScores.reduce((a,b)=>a+b,0)/formScores.length);
     setScore(avg);
-    if(avg>bestForm){bestForm=avg;stBest.textContent=bestForm+'%';}
+    if(avg>bestForm){bestForm=avg;updateStats();}
     setTips(tips);
   }
 }
 
-// ═══════════════════════════════════════
-// MEDIAPIPE SETUP
-// ═══════════════════════════════════════
 function setupPose(){
   pose=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}`});
   pose.setOptions({modelComplexity:1,smoothLandmarks:true,enableSegmentation:false,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
@@ -693,105 +1032,161 @@ async function frameLoop(){
   raf=requestAnimationFrame(frameLoop);
 }
 
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════
 // CAMERA
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════
+async function toggleCam(){
+  running?stopCam():startCam();
+}
+
 async function startCam(){
   try{
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480},audio:false});
     vid.srcObject=stream;await vid.play();
-    noCam.style.display='none';
-    livePill.classList.add('on');liveText.textContent='LIVE';
-    camBtn.textContent='STOP';camBtn.classList.add('stop');
+    document.getElementById('noCam').style.display='none';
+    document.getElementById('liveBadge').classList.add('on');
+    document.getElementById('liveText').textContent='LIVE';
+    document.getElementById('camBtn').textContent='STOP';
+    document.getElementById('camBtn').classList.add('stop');
     running=true;
     if(!pose)setupPose();
     frameLoop();
-    repGoal=parseInt(targetInput.value)||10;
-    repTarget.textContent='Target: '+repGoal+' reps';
-    speak(EX[activeEx].goggins_start,true);
-  }catch(e){
-    alert('Camera access denied. Please allow camera and try again.');
-  }
+    repGoal=parseInt(document.getElementById('targetInp').value)||10;
+    updateRepUI();
+    setTimeout(()=>speak(EXERCISES[activeEx].voice.start,true),500);
+  }catch(e){alert('Camera access denied! Please allow camera permission and try again.');}
 }
 
 function stopCam(){
   running=false;cancelAnimationFrame(raf);
   if(stream)stream.getTracks().forEach(t=>t.stop());
   vid.srcObject=null;
-  noCam.style.display='flex';
-  livePill.classList.remove('on');liveText.textContent='OFFLINE';
-  camBtn.textContent='START';camBtn.classList.remove('stop');
+  document.getElementById('noCam').style.display='flex';
+  document.getElementById('liveBadge').classList.remove('on');
+  document.getElementById('liveText').textContent='OFFLINE';
+  document.getElementById('camBtn').textContent='START';
+  document.getElementById('camBtn').classList.remove('stop');
   ctx.clearRect(0,0,cvs.width,cvs.height);
   if(reps>0)saveHistory();
 }
 
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// NEW SET
+// ═══════════════════════════════════════════════════
+function newSet(){
+  if(reps>0)saveHistory();
+  reps=0;stage=null;formScores=[];angleBuffer=[];repIdx=0;
+  updateRepUI();setScore(0);
+  document.getElementById('ovStage').textContent='';
+  document.getElementById('ovAngle').textContent='';
+  ['tipsBox','tipsBoxM'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.innerHTML='<div class="empty-msg">Start exercising to get coaching...</div>';
+  });
+  if(running)speak('New set! '+EXERCISES[activeEx].voice.start,true);
+}
+
+// ═══════════════════════════════════════════════════
 // HISTORY
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function saveHistory(){
   const avg=formScores.length?Math.round(formScores.reduce((a,b)=>a+b,0)/formScores.length):0;
   const col=avg>=80?'var(--g)':avg>=55?'var(--y)':'var(--r)';
   const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  history.unshift({ex:EX[activeEx].label,reps,avg,col,time});
-  sets++;stSets.textContent=sets;
-  renderHistory();
+  history.unshift({ex:EXERCISES[activeEx].label,icon:EXERCISES[activeEx].icon,reps,avg,col,time});
+  sets++;updateStats();renderHistory();
 }
 
 function renderHistory(){
-  if(!history.length){histList.innerHTML='<div class="empty-msg">No sets yet</div>';return;}
-  histList.innerHTML=history.slice(0,8).map(h=>`
+  const el=document.getElementById('histBox');
+  if(!el)return;
+  if(!history.length){el.innerHTML='<div class="empty-msg">No sets recorded yet</div>';return;}
+  el.innerHTML=history.slice(0,10).map(h=>`
     <div class="hist-item">
-      <span class="hi-ex">${h.ex}</span>
+      <span class="hi-ex">${h.icon} ${h.ex}</span>
       <span class="hi-reps">${h.reps}r</span>
       <span class="hi-score" style="border-color:${h.col};color:${h.col}">${h.avg}%</span>
       <span class="hi-time">${h.time}</span>
     </div>`).join('');
 }
 
-// ═══════════════════════════════════════
-// EVENTS
-// ═══════════════════════════════════════
-camBtn.addEventListener('click',()=>running?stopCam():startCam());
+// ═══════════════════════════════════════════════════
+// VOICE RECOGNITION (COMMANDS)
+// ═══════════════════════════════════════════════════
+function initVoiceRecognition(){
+  if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window))return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.continuous=true;
+  recognition.interimResults=false;
+  recognition.lang='en-US';
+  recognition.onstart=()=>{
+    listeningVC=true;
+    document.getElementById('micStatus').classList.add('listening');
+  };
+  recognition.onend=()=>{
+    listeningVC=false;
+    document.getElementById('micStatus').classList.remove('listening');
+    if(running)setTimeout(()=>recognition.start(),1000);
+  };
+  recognition.onresult=e=>{
+    const transcript=e.results[e.results.length-1][0].transcript.toLowerCase().trim();
+    handleVoiceCommand(transcript);
+  };
+  recognition.onerror=()=>{};
+  recognition.start();
+}
 
-resetBtn.addEventListener('click',()=>{
-  if(reps>0)saveHistory();
-  reps=0;stage=null;formScores=[];angleBuffer=[];gogIdx=0;
-  repBig.textContent='0';ovRep.textContent='0';
-  repGoal=parseInt(targetInput.value)||10;
-  repTarget.textContent='Target: '+repGoal+' reps';
-  setScore(0);ovStage.textContent='';ovAngle.textContent='';
-  tipsList.innerHTML='<div class="empty-msg">Start to get coaching...</div>';
-  if(running)speak('NEW SET! '+EX[activeEx].goggins_start,true);
-});
+const CMD_MAP={
+  'push up':'pushup','push-up':'pushup','pushup':'pushup',
+  'squat':'squat','squats':'squat',
+  'bicep curl':
+  'curl':'curl','curls':'curl',
+  'shoulder press':'shoulder','shoulder':'shoulder',
+  'lateral raise':'lateral','lateral':'lateral',
+  'arm circle':'armrotate','arm rotation':'armrotate','arm circles':'armrotate',
+  'hip rotation':'hiprotate','hip rotate':'hiprotate','hip':'hiprotate',
+  'neck roll':'neckroll','neck':'neckroll',
+  'shoulder roll':'shoulderroll',
+  'tricep':'tricep','tricep dip':'tricep',
+  'plank':'plank',
+  'lunge':'lunge','lunges':'lunge',
+  'calf raise':'calf','calf':'calf',
+  'jumping jack':'jumpjack','jumping jacks':'jumpjack','jump':'jumpjack',
+};
 
-voiceBtn.addEventListener('click',()=>{
-  voiceOn=!voiceOn;
-  voiceBtn.classList.toggle('on',voiceOn);
-  voiceBtn.textContent=voiceOn?'🔊':'🔇';
-  if(!voiceOn)speechSynthesis.cancel();
-});
+function handleVoiceCommand(text){
+  const banner=document.getElementById('vcBanner');
+  document.getElementById('vcText').textContent='"'+text+'"';
+  banner.classList.add('show');
+  clearTimeout(banner._t);banner._t=setTimeout(()=>banner.classList.remove('show'),2500);
+  for(const[phrase,ex]of Object.entries(CMD_MAP)){
+    if(text.includes(phrase)){
+      if(reps>0)saveHistory();
+      activeEx=ex;reps=0;stage=null;formScores=[];angleBuffer=[];repIdx=0;
+      updateExUI();updateRepUI();setScore(0);
+      buildQuickRow();
+      speak('Switching to '+EXERCISES[ex].label+'. '+EXERCISES[ex].voice.start,true);
+      return;
+    }
+  }
+  if(text.includes('new set')||text.includes('reset')){newSet();return;}
+  if(text.includes('stop')||text.includes('pause')){if(running)stopCam();return;}
+  if(text.includes('start')||text.includes('begin')){if(!running)startCam();return;}
+}
 
-targetInput.addEventListener('change',()=>{
-  repGoal=parseInt(targetInput.value)||10;
-  repTarget.textContent='Target: '+repGoal+' reps';
-});
-
-document.getElementById('exGrid').addEventListener('click',e=>{
-  const btn=e.target.closest('.ex-btn');
-  if(!btn)return;
-  document.querySelector('.ex-btn.active')?.classList.remove('active');
-  btn.classList.add('active');
-  if(reps>0)saveHistory();
-  activeEx=btn.dataset.ex;
-  reps=0;stage=null;formScores=[];angleBuffer=[];gogIdx=0;
-  repBig.textContent='0';ovRep.textContent='0';
-  setScore(0);ovStage.textContent='';ovAngle.textContent='';
-  tipsList.innerHTML='<div class="empty-msg">Start to get coaching...</div>';
-  if(running)speak(EX[activeEx].goggins_start,true);
-});
-
-// preload voices
 window.speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+
+document.getElementById('targetInp').addEventListener('change',()=>{
+  const v=document.getElementById('targetInp').value;
+  document.getElementById('targetInpM').value=v;
+  repGoal=parseInt(v)||10;updateRepUI();
+});
+document.getElementById('targetInpM').addEventListener('change',()=>{
+  const v=document.getElementById('targetInpM').value;
+  document.getElementById('targetInp').value=v;
+  repGoal=parseInt(v)||10;updateRepUI();
+});
 </script>
 </body>
 </html>
